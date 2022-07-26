@@ -3,7 +3,7 @@
       endpoint: 'https://offers.goaptive.com'
     }))
 var pageUrl = window.location.href;
-var dniNumber = findNumber(trackedNumber);
+//var dniNumber = findNumber(trackedNumber);
 var dniUrl = 'https://marketingservice-1986-dev.twil.io/DynamicNumberInsertion';
 var xhr = new XMLHttpRequest();
 
