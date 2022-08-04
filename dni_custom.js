@@ -38,16 +38,16 @@ dniNumber=xhr.responseText; }
     }
     return null;
   };)
-.then (function fillNumber(trackedNumber){
+.then (function fillNumber(dniNumber){
     var aTags = document.getElementsByTagName("a");
     
     for (var i = 0; i < aTags.length; i++) {
     if (aTags[i].href.search('tel:') == 0) {
-    aTags[i].href = 'tel:1'+aptiveHrefPhoneNumber(trackedNumber)+'';
-    aTags[i].dataset.ckeSavedHref = 'tel:1'+aptiveHrefPhoneNumber(trackedNumber)+'';
+    aTags[i].href = 'tel:1'+aptiveHrefPhoneNumber(dniNumber)+'';
+    aTags[i].dataset.ckeSavedHref = 'tel:1'+aptiveHrefPhoneNumber(dniNumber)+'';
     if (aTags[i].innerHTML.search('Call')== 0 )
         {console.log("Mobile Page");}
-      else {aTags[i].innerHTML = aptiveDisplayPhoneNumber(trackedNumber);}
+      else {aTags[i].innerHTML = aptiveDisplayPhoneNumber(dniNumber);}
     }
   }
 };)
