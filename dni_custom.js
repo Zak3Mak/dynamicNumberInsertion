@@ -1,6 +1,7 @@
 let visitorId = '';
 let dniData = '';
 let dniNumber = 8888888888;
+var aTags = document.getElementsByTagName("a");
 const pageUrl = window.location.href;
 //var dniNumber = findNumber(trackedNumber);
 const dniUrl = 'https://marketingservice-1986-dev.twil.io/DynamicNumberInsertion';
