@@ -1,7 +1,6 @@
 let visitorId = '';
 let dniData = '';
 let dniNumber = 8888888888;
-var aTags = document.getElementsByTagName("a");
 const pageUrl = window.location.href;
 //var dniNumber = findNumber(trackedNumber);
 const dniUrl = 'https://marketingservice-1986-dev.twil.io/DynamicNumberInsertion';
@@ -40,6 +39,8 @@ dniNumber=xhr.responseText; }
     return null;
   };)
 .then (function fillNumber(trackedNumber){
+    var aTags = document.getElementsByTagName("a");
+    
     for (var i = 0; i < aTags.length; i++) {
     if (aTags[i].href.search('tel:') == 0) {
     aTags[i].href = 'tel:1'+aptiveHrefPhoneNumber(trackedNumber)+'';
