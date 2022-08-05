@@ -29,7 +29,7 @@ dniNumber=xhr.responseText; }
       return '' + match[1] + '.' + match[2] + '.' + match[3];
     }
     return null;
-  };)
+  })
 .then (function aptiveHrefPhoneNumber(dniNumber) {
     var cleaned = ('' + dniNumber).replace(/\D/g, '');
     var match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
@@ -37,7 +37,7 @@ dniNumber=xhr.responseText; }
       return '(' + match[1] + ')' + match[2] + '-' + match[3];
     }
     return null;
-  };)
+  })
 .then (function fillNumber(dniNumber){
     var aTags = document.getElementsByTagName("a");
     
@@ -50,4 +50,4 @@ dniNumber=xhr.responseText; }
       else {aTags[i].innerHTML = aptiveDisplayPhoneNumber(dniNumber);}
     }
   }
-};)
+})
