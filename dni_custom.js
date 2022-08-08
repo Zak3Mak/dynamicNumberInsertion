@@ -2,6 +2,22 @@ let visitorId = '';
 let dniData = '';
 let dniNumber = 8888888888;
 const pageUrl = window.location.href;
+let aptiveHrefPhoneNumber = function (dniNumber) {
+    var cleaned = ('' + dniNumber).replace(/\D/g, '');
+    var match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
+    if (match) {
+      return '(' + match[1] + ')' + match[2] + '-' + match[3];
+    }
+    return null;
+  };
+let aptiveDisplayPhoneNumber = function (dniNumber) {
+    var cleaned = ('' + dniNumber).replace(/\D/g, '');
+    var match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
+    if (match) {
+      return '' + match[1] + '.' + match[2] + '.' + match[3];
+    }
+    return null;
+  };
 //var dniNumber = findNumber(trackedNumber);
 const dniUrl = 'https://marketingservice-1986-dev.twil.io/DynamicNumberInsertion';
 const xhr = new XMLHttpRequest();
@@ -21,23 +37,6 @@ let fpPromise = import('https://fpcdn.io/v3/i0B5iy6WSpMFPH0pSHLB')
 dniNumber=xhr.responseText; }
 }})
 .then (function(){xhr.send(dniData);})
-
-.then (function aptiveDisplayPhoneNumber(dniNumber) {
-    var cleaned = ('' + dniNumber).replace(/\D/g, '');
-    var match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
-    if (match) {
-      return '' + match[1] + '.' + match[2] + '.' + match[3];
-    }
-    return null;
-  })
-.then (function aptiveHrefPhoneNumber(dniNumber) {
-    var cleaned = ('' + dniNumber).replace(/\D/g, '');
-    var match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
-    if (match) {
-      return '(' + match[1] + ')' + match[2] + '-' + match[3];
-    }
-    return null;
-  })
 .then (function fillNumber(dniNumber){
     var aTags = document.getElementsByTagName("a");
     
