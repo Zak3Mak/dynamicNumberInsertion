@@ -35,7 +35,9 @@ let fpPromise = import('https://fpcdn.io/v3/i0B5iy6WSpMFPH0pSHLB')
 .then (function (){xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');})
 .then (function (){xhr.onreadystatechange = function() {//Call a function when the state changes.
     if(xhr.readyState == 4 && xhr.status == 200) {
-dniNumber=xhr.responseText; }
+dniNumber=xhr.responseText;
+console.log("dniNumber:", dniNumber);
+    }
 }})
 .then (function(){xhr.send(dniData);})
 .then (function fillNumber(dniNumber){
