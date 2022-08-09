@@ -19,6 +19,7 @@ let aptiveDisplayPhoneNumber = function (phoneNumber) {
     return null;
   };
 let aTags = document.getElementsByTagName("a");
+console.log("aTags:", aTags);
 //var dniNumber = findNumber(trackedNumber);
 const dniUrl = 'https://marketingservice-1986-dev.twil.io/DynamicNumberInsertion';
 const xhr = new XMLHttpRequest();
