@@ -1,4 +1,4 @@
-let visitorId = '';
+var visitorId = '';
 let dniData = '';
 let dniNumber = 8888888888;
 const pageUrl = window.location.href;
@@ -18,7 +18,7 @@ let aptiveDisplayPhoneNumber = function (phoneNumber) {
     }
     return null;
   };
-let aTags = document.getElementsByTagName("a");
+var aTags = document.getElementsByTagName("a");
 console.log("aTags:", aTags);
 //var dniNumber = findNumber(trackedNumber);
 const dniUrl = 'https://marketingservice-1986-dev.twil.io/DynamicNumberInsertion';
