@@ -18,8 +18,8 @@ let aptiveDisplayPhoneNumber = function (phoneNumber) {
     }
     return null;
   };
-var aTags = document.getElementsByTagName("a");
-console.log("aTags:", aTags);
+var linkUpdate = document.getElementsByTagName("a");
+console.log("linkUpdate:", linkUpdate);
 //var dniNumber = findNumber(trackedNumber);
 const dniUrl = 'https://marketingservice-1986-dev.twil.io/DynamicNumberInsertion';
 const xhr = new XMLHttpRequest();
@@ -43,14 +43,14 @@ console.log("dniNumber:", dniNumber);
 .then (function(){xhr.send(dniData);})
 .then (function fillNumber(dniNumber){
         
-    for (var i = 0; i < aTags.length; i++) {
-        if (aTags[i].href.search('tel:') == 0) {
-        aTags[i].href = 'tel:1'+aptiveHrefPhoneNumber(dniNumber)+'';
-        aTags[i].dataset.ckeSavedHref = 'tel:1'+aptiveHrefPhoneNumber(dniNumber)+'';
-            if (aTags[i].innerHTML.search('Call')== 0 ) {
+    for (var i = 0; i < linkUpdate.length; i++) {
+        if (linkUpdate[i].href.search('tel:') == 0) {
+        linkUpdate[i].href = 'tel:1'+aptiveHrefPhoneNumber(dniNumber)+'';
+        linkUpdate[i].dataset.ckeSavedHref = 'tel:1'+aptiveHrefPhoneNumber(dniNumber)+'';
+            if (linkUpdate[i].innerHTML.search('Call')== 0 ) {
                 console.log("Mobile Page");
             } else {
-                aTags[i].innerHTML = aptiveDisplayPhoneNumber(dniNumber);
+                linkUpdate[i].innerHTML = aptiveDisplayPhoneNumber(dniNumber);
                    }
         }
   }
