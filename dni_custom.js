@@ -41,7 +41,7 @@ console.log("dniNumber:", dniNumber);
     }
 }})
 .then (function(){xhr.send(dniData);})
-.then (function fillNumber(dniNumber){
+.then (function fillNumber(){
         
     for (var i = 0; i < linkUpdate.length; i++) {
         if (linkUpdate[i].href.search('tel:') == 0) {
