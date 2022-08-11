@@ -3,7 +3,7 @@ var dniData = '';
 var dniNumber = 8888888888;
 const pageUrl = window.location.href;
 var aptiveHrefPhoneNumber = function (phoneNumber) {
-    var cleaned = ('' + dniNumber).replace(/\D/g, '');
+    var cleaned = ('' + phoneNumber).replace(/\D/g, '');
     var match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
     if (match) {
       return '(' + match[1] + ')' + match[2] + '-' + match[3];
@@ -11,7 +11,7 @@ var aptiveHrefPhoneNumber = function (phoneNumber) {
     return null;
   };
 var aptiveDisplayPhoneNumber = function (phoneNumber) {
-    var cleaned = ('' + dniNumber).replace(/\D/g, '');
+    var cleaned = ('' + phoneNumber).replace(/\D/g, '');
     var match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
     if (match) {
       return '' + match[1] + '.' + match[2] + '.' + match[3];
