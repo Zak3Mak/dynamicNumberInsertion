@@ -1,8 +1,8 @@
 var visitorId = '';
-let dniData = '';
-let dniNumber = 8888888888;
+var dniData = '';
+var dniNumber = 8888888888;
 const pageUrl = window.location.href;
-let aptiveHrefPhoneNumber = function (phoneNumber) {
+var aptiveHrefPhoneNumber = function (phoneNumber) {
     var cleaned = ('' + dniNumber).replace(/\D/g, '');
     var match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
     if (match) {
@@ -10,7 +10,7 @@ let aptiveHrefPhoneNumber = function (phoneNumber) {
     }
     return null;
   };
-let aptiveDisplayPhoneNumber = function (phoneNumber) {
+var aptiveDisplayPhoneNumber = function (phoneNumber) {
     var cleaned = ('' + dniNumber).replace(/\D/g, '');
     var match = cleaned.match(/^(\d{3})(\d{3})(\d{4})$/);
     if (match) {
