@@ -27,7 +27,7 @@ var fillNumber = function (){
         if (linkUpdate[i].href.search('tel:') == 0) {
         linkUpdate[i].href = 'tel:1'+aptiveHrefPhoneNumber(dniNumber)+'';
         linkUpdate[i].dataset.ckeSavedHref = 'tel:1'+aptiveHrefPhoneNumber(dniNumber)+'';
-            if (linkUpdate[i].innerHTML.search('Call')== 0 ) {
+            if (screen.width < 1024) {
                 console.log("Mobile Page");
             } else {
                 linkUpdate[i].innerHTML = aptiveDisplayPhoneNumber(dniNumber);
