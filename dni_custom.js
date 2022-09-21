@@ -1,7 +1,7 @@
 var visitorId = '';
 var dniData = '';
 var dniNumber = '8888888888';
-const pageUrl = window.location.href;
+const pageUrl = encodeURIComponent(window.location.href);
 
 var aptiveHrefPhoneNumber = function (phoneNumber) {
     var cleaned = ('' + phoneNumber).replace(/\D/g, '');
