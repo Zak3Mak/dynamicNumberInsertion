@@ -39,7 +39,7 @@ var fillNumber = function (){
 var linkUpdate = document.getElementsByTagName("a");
 /* console.log("linkUpdate:", linkUpdate); */
 //var dniNumber = findNumber(trackedNumber);
-const dniUrl = 'https://marketingservice-1986-dev.twil.io/DynamicNumberInsertion';
+const dniUrl = 'https://marketingservice-1986.twil.io/DynamicNumberInsertion';
 const xhr = new XMLHttpRequest();
 
 
