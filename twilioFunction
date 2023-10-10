@@ -1,0 +1,310 @@
+//This service is managed by the marketing team. It should not be modifided by ANYONE
+const axios = require('axios');
+exports.handler = async function (context, event, callback) {
+    console.log(`Start Dynamic Number Insertion`);
+    //set up twilio response
+    let response = new Twilio.Response()
+        .setStatusCode(200)
+        .setHeaders({
+            'Content-Type': 'application/json',
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': ['GET', 'POST']
+        });
+ //Lets declare some variables       
+let {url,cookies, params, calledNumber,leadLog, data, callSid,inboundPhone} = event, sync = {serviceSid: context.DNI_SYNC,mapSid: context.DNI_MAP}, client = context.getTwilioClient(), dniNumber = '',i = 0
+, dynamicNumberList = getNumbers(), aptiveLeadLog = 'https://marketingservice-1986.twil.io/LeadLog', leadBody = {},ga4Body = {}, retryCount = 0, retry = 5 , number;
+const ga4Url = `https://www.google-analytics.com/mp/collect?measurement_id=G-NCB15LWPB1&api_secret=_7ZOjvPOSE-eNFLLuU-0IQ`;
+
+if (url)    {
+if (url.includes('goaptive.com') && !url.includes('stage')){
+
+        let  syncData = {url:url,cookies:cookies,params:params};
+
+        while (retryCount < retry){
+            try{
+       number = await findPhoneNumberNotInSync(client, sync);
+        while (number.some(z => z.key == dynamicNumberList[i]) && i <= dynamicNumberList.length) {i++;};
+        if (i / dynamicNumberList.length >= .8) {warningText(client, i, dynamicNumberList.length);}
+        dniNumber = dynamicNumberList[i];
+        await createStudioSyncItem(client, sync, dniNumber, syncData);
+         response.setBody(dniNumber);
+        break;
+            } 
+            catch (error){console.log(`Attempt ${retryCount + 1} failed. Retrying...`);
+      retryCount++;}
+        }
+       if (retryCount === retry){response.setBody ('8445737111');}
+       removeExpiredItem(number, sync, client);
+        return callback(null, response);
+    }
+
+    
+    else {return callback(null, response);}
+    };
+    if (calledNumber) {
+        calledNumber = formatPhone(calledNumber)
+        number = await findPhoneNumberNotInSync(client, sync);
+        if (dynamicNumberList.includes(parseInt(calledNumber,10)) && number.some(z => z.key == calledNumber) ) {
+            if (leadLog) {
+                //response if exists and in logger
+                let syncData = await getSyncDataFromCalledNumber(client, sync, calledNumber);
+                let pnData = await phoneNumberData(calledNumber, context)
+                leadBody = postBody(calledNumber, inboundPhone, callSid, null, syncData).leadBody
+                console.log(`leadBody:${leadBody}`)
+                ga4Body = postBody(calledNumber, inboundPhone, callSid, null, syncData).ga4Body
+                if(data){ //This is for testing in postman to get see data
+                    response.setBody(leadBody);
+                    return callback(null, response);
+                    
+                    }
+                    await deleteSyncDataFromCalledNumber(client, sync, calledNumber);
+                       try {
+                         console.log(`leadBody: ${JSON.stringify(leadBody)}`)
+                        await axios.all ([
+                          
+                            axios.post(aptiveLeadLog, leadBody).then(function (r){response.setBody(r.data)}),
+                            axios.post (ga4Url,ga4Body) 
+                        ])
+
+} catch (error) {console.error('Error during Axios POST', error.response ? error.response.data : error.message);
+} return callback(null, response);}}
+        else {//phonenumber lookup
+        let pnData = await phoneNumberData(calledNumber, context)
+        console.log(JSON.stringify(pnData))
+        leadBody = postBody(calledNumber, inboundPhone, callSid, pnData, null).leadBody
+        ga4Body = postBody(calledNumber, inboundPhone, callSid,  pnData, null).ga4Body
+            if(data){
+                     response.setBody(leadBody);
+                     return callback(null,response); 
+            }
+                await axios.all ([
+                    axios.post(aptiveLeadLog, leadBody).then(function (r){response.setBody(r.data)}),
+                    axios.post (ga4Url,ga4Body) 
+                ])
+                
+        
+        //response.setBody({ data: false });
+        return callback(null, response);
+        }}};
+
+        
+function postBody(calledNumber, inboundPhone, callSid, pnData, syncData) {
+          //What should you do if no utms are passed?
+            // Generate leadBody
+            let leadBody = {
+              callSid: callSid,
+              inboundPhone: formatPhone(inboundPhone),
+              calledNumber: formatPhone(calledNumber)
+            };
+          
+            if (syncData) {
+              leadBody.params = syncData.params;
+              leadBody.cookies = syncData.cookies;
+              leadBody.url = syncData.url;
+            }
+
+          console.log(JSON.stringify(pnData))
+            if (!syncData){
+                leadBody.params = pnData.params;
+                leadBody.url =  pnData.url;
+            }
+
+          
+            // Generate ga4Body based on leadBody
+            let clientID = leadBody.inboundPhone;
+            if (leadBody.cookies && leadBody.cookies._ga) {
+              clientID = leadBody.cookies._ga.substring(6);
+            }
+          
+            const ga4Body = {
+              client_id: clientID,
+              timestamp_micros: Date.now() * 1000,
+              non_personalized_ads: false,
+              events: [{
+                name: "Phone_Call",
+                params: {
+                  Source: leadBody.params?.utm_source ?? leadBody.params?.source ?? undefined,
+                  Medium: leadBody.params?.utm_medium ?? leadBody.params?.medium ?? undefined,
+                  Campaign: leadBody.params?.utm_campaign ?? leadBody.params?.campaign ?? undefined
+                }
+              }]
+            };
+          return {
+              leadBody,
+              ga4Body
+            };
+          }
+
+
+
+
+const removeExpiredItem = (number, sync, client) => {
+       let now = new Date(), q=0;
+        while (q <= number.length) {
+            if(number[q]) {
+            let testDate = new Date(number[q].dateExpires)
+            if(testDate.toISOString() < now.toISOString()){
+                try {
+             deleteSyncDataFromCalledNumber(client, sync, number[q].key); console.log(`Deleted item;${number[q].key}`)}
+             catch (error){console.log('Missing Key')}}
+            } 
+
+            q++;
+            };};
+
+const findPhoneNumberNotInSync = async (client, sync) => {
+    try {
+        let mapItem = await client.sync.v1.services(sync.serviceSid)
+            .syncMaps(sync.mapSid)
+            .syncMapItems
+            .list();
+        return (mapItem);
+    } catch (e) {
+    }
+}
+//get numbers
+function getNumbers() {
+return [8882904945,8882990543,8882928460,8882810993,8882310593,8883137671,8882990751,8882990756,8882945481,8883164728,8882811073,8882993968,8882990326,8883084087,8885851781,8882990079,8888141571,8883165244,8882990651,8882990103,8882904571,8883437706,8882990472,8883166265,8882810832,8883153491,8883131672,8883016289,8882990592,8882964720,8882949284,8882811067,8882810674,8882990695,8882811078,8889154138,8882990198,8882940284,8889794383,8882990717,8883135217,8882928518,8882990048,8882810678,8883391728,8882970648,8887203394,8885414828,8886814290,8882319284,8882990738,8883155765,8882990522,8883015284,8883168934,8882990666,8883426703,8882811064,8883429732,8883036977,8883510498,8882996630,8883024136,8888365667,8882990703,8882990705,8883054254,8882990320,8885142615,8882830622,8882990445,8882941284,8882990118,8882921284,8882990576,8883157381,8882990246,8884750385,8884923354,8882993972,8882944542,8882996210,8882994953,8882990536,8882810687,8882811193,8882990681,8882990563,8882904495,8882810725,8882810639,8882967284,8887055501,8882928086,8882918284,8883012235,8886174968,8882990476,8882810994,8884498915,8882313284,8882990029,8883155217,8882994251,8882810978,8882990174,8882963284,8882990523,8882905017,8882990634,8882990432,8883185535,8882990166,8882990142,8883164010,8882994268,8886258853,8882995778,8883134589,8882810758,8882902496,8882990087,8882919284,8882985284,8883424615,8888419102,8883155810,8882990420,8883189857,8882904522,8883155061,8882811196,8882945028,8888248809,8882990393,8882990535,8882990460,8882811198,8882990104,8882990739,8882810398,8882811085,8882988284,8882990287,8882915746,8883055207,8883067760,8883394572,8882810766,8885641039,8882990547,8882990408,8882990255,8882990152,8882991608,8882317284,8882990713,8882994213,8888319353,8882944903,8882905044,8882990298,8888148556,8885216946,8882970284,8882810621,8882990671,8883043451,8882996568,8883464825,8883012155,8882944479,8882810704,8882990708,8883156245,8882990169,8882990328,8882990668,8882916284,8883353104,8882811191,8883024165,8882990070,8882810997,8882904849,8883158202,8882993284,8882990545,8882990281,8882928528,8882990730,8883361743,8882990514,8882811058,8882990475,8889705023,8885413734,8883131356,8882926284,8882810817,8882990459,8882928874,8886703897,8882990205,8884921766,8887063551,8886701893,8887032985,8882993988,8882810716,8882990316,8882990321,8882990680,8883155642,8883155884,8882990548,8882904662,8882926296,8882990234,8886975810,8882056198,8882810975,8882990356,8882926634,8882928520,8882990664,8885918568,8882990360,8882990584,8882990757,8886814108,8882990185,8882990362,8883484812,8882926254,8882990534,8884062971,8882990395,8882990601,8882810624,8882316284,8882996890,8887731601,8882996231,8882990410,8882810721,8882990211,8882810714,8888419051,8883482169,8882810961,8882990280,8882990718,8882990587,8882310917,8882990696,8882945134,8882990158,8888318474,8882811066,8882990562,8882990715,8882990451,8883427296,8883016284,8887842631,8882990462,8882811068,8882990197,8882810643,8882994742,8882990443,8885537324,8882990350,8886040451,8882990663,8882990711,8882810821,8882990567,8883061828,8882944915,8882990165,8883012197,8883012162
+]
+}
+//send warning sms when at 80% capacity
+const warningText = (client, number, total) => {
+    const from = '+18556020762';
+    const to = '+17144788889';
+    const body = `You have currently used ${number} of your ${total} dni numbers.`;
+    client.messages
+        .create({
+            body,
+            to,
+            from
+        })
+        .then((message) => {
+            return callback(null, `Success! Message SID: ${message.sid}`);
+        })
+};
+//create new sync map item with transfer count 1
+const createStudioSyncItem = async (client, sync, dniNumber, syncData) => {
+    await client.sync.v1.services(sync.serviceSid)
+        .syncMaps(sync.mapSid)
+        .syncMapItems
+        .create({
+            key: dniNumber,
+            data: syncData,
+            ttl: 240 //this should be equivilant to the avg time on site
+        });return (null, 'sync created');};
+
+
+//find sync data to post to endpoint
+const getSyncDataFromCalledNumber = async (client, sync, calledNumber) => {
+    console.log(`start getSyncDataFromCalledNumber`);
+    try {    
+    let mapItem = await client.sync.v1.services(sync.serviceSid)
+            .syncMaps(sync.mapSid)
+            .syncMapItems(calledNumber)
+            .fetch();
+        return (mapItem.data);
+    }
+    catch {return (null)}
+    };
+
+// delete sync to free up the phone number
+const deleteSyncDataFromCalledNumber = async (client, sync, calledNumber) => {
+  try {
+    await client.sync.v1.services(sync.serviceSid)
+        .syncMaps(sync.mapSid)
+        .syncMapItems(calledNumber)
+        .remove();
+    return (null, 'sync map removed');
+  }
+  catch{return (null,'no sync map to remove');}
+  };
+
+//Format Phone Numbers for use in data
+const formatPhone = (phone) => {
+    let returnPhone = phone.toString().replace(/\D/g, '');
+    if (returnPhone.length === 10) {
+        returnPhone = returnPhone;
+    }
+    if (returnPhone.length === 11) {
+        returnPhone = returnPhone.substring(1);
+    }
+    return returnPhone;
+}
+//Data phone number lookup function
+async function phoneNumberData(phone,context){
+  console.log('aws lookup');
+  console.log(`Phone: ${phone}`);
+  
+    try {
+  const phoneData = await axios.post(
+    `https://evwroyz8a6.execute-api.us-east-1.amazonaws.com/Prod/partner/lookup`,
+    { phone_number: `1${phone}` },
+    {
+      headers: {
+        'X-API-KEY': `HK2zGcHqLK8NKwgVMkQyL7nMzFTl4q5u1uSvp9vl`,
+        'Content-Type': 'application/json',
+      },
+    }
+  );
+  console.log(`phoneData: ${phoneData.data.body.result}`)
+    if (phoneData.data.body.result.source.includes('&')){
+   let phoneExtract =  extractParameters(phoneData.data.body.result.source)
+   phoneExtract.params.ivr = phoneData.data.body.result.ivr    
+        console.log(`body ${phoneExtract}`)
+        return (phoneExtract);
+    }
+    else{
+        const body = {phone_number: phone,
+        params:{
+         partner: phoneData.data.body.result.source, 
+         source: phoneData.data.body.result.source, 
+         campaign: phoneData.data.body.result.campaign, 
+         medium: phoneData.data.body.result.medium,
+         ivr:phoneData.data.body.result.ivr} };
+        return (body);
+    }
+} catch (error) {
+  console.error('Error during Axios POST', error.response ? error.response.data : error.message);
+   return ({phone_number:'1', source:'Unknown', medium:'Unknown', campaign:'Unknown', ivr:'Unknown'});
+}
+}
+
+
+function extractParameters(data) {
+  var lower = data.toLowerCase();
+    if(!lower.includes('://')){lower = 'http://'+lower}
+
+  if (lower.includes('?') && lower.includes('.')) {
+    var parts = lower.split('?');
+    var domainAndPath = parts.shift();
+    var query = parts.join('?');
+
+    // Check if the domainAndPath contains '://', if not, assume 'https://'
+    if (!domainAndPath.includes('://')) {
+      domainAndPath = 'https://' + domainAndPath;
+    }
+
+    var urlObject = new URL(decodeURI(domainAndPath));
+    var domain = urlObject.hostname;
+    var path = urlObject.pathname;
+
+    var searchParams = new URLSearchParams(query);
+    var parameters = {};
+    searchParams.forEach(function (value, key) {
+      parameters[key] = value;
+    });
+
+    if (path) {
+      return { url: domain + path, params: parameters };
+    }
+
+    return { params: parameters };
+  }
+  var searchParams = new URLSearchParams(data);
+  var parameters = {};
+  searchParams.forEach(function (value, key) {
+    parameters[key] = value;
+  });
+
+  return { params: parameters };
+}
